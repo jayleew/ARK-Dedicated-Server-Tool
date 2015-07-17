@@ -1,0 +1,5 @@
+C:\Users\jason_000\Documents\GitHub\Repositories\ARK-Dedicated-Server-Tool\ServerUpdateService\obj\Debug\ServerUpdateService.csprojResolveAssemblyReference.cache
+C:\Users\jason_000\Documents\GitHub\Repositories\ARK-Dedicated-Server-Tool\ServerUpdateService\bin\Debug\ARKServerUpdateService.exe
+C:\Users\jason_000\Documents\GitHub\Repositories\ARK-Dedicated-Server-Tool\ServerUpdateService\bin\Debug\ARKServerUpdateService.pdb
+C:\Users\jason_000\Documents\GitHub\Repositories\ARK-Dedicated-Server-Tool\ServerUpdateService\obj\Debug\ARKServerUpdateService.exe
+C:\Users\jason_000\Documents\GitHub\Repositories\ARK-Dedicated-Server-Tool\ServerUpdateService\obj\Debug\ARKServerUpdateService.pdb
