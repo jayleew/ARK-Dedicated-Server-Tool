@@ -28,8 +28,44 @@ namespace ServerUpdateService
             {
                 var service = new BusinessLogic.ARKUpdate();
                 service.ErrorEvent += service_ErrorEvent;
+                service.Event += service_Event;               
                 service.Start();
-                Console.ReadKey();
+
+                Console.Write(">");
+
+                string command = Console.ReadLine();
+                while (command.ToLower() != "exit" && command.ToLower() != "quit")
+                {
+                    if (command.StartsWith("/".ToLower()))
+                    {
+                        command.TrimStart("/".ToCharArray());
+                        
+                    }
+                    else
+                    {
+                        try
+                        {
+                            switch (command)
+                            {
+                                case "getversion" :
+                                    var manager = new ServerUpdateService.BusinessLogic.APIARKBARManager();
+                                    var serverinfo = manager.GetServerInfo<JSONDataContracts.ServerInfoRoot>("http://api.ark.bar/server/173.26.48.221/27015");
+                                    var gameinfo = manager.GetServerInfo<JSONDataContracts.GameVersionInfo>("http://api.ark.bar/version");
+                                    break;
+                                default:
+                                    Console.WriteLine(service.SendRCONCommand(command));
+                                    break;
+                            }
+                            
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex.ToString());
+                        }
+                    }
+                    Console.Write(">");
+                    command = Console.ReadLine();
+                }
                 service.Stop();
             }
             else
@@ -43,9 +79,15 @@ namespace ServerUpdateService
             }
         }
 
+        static void service_Event(object sender, string message)
+        {
+            Console.WriteLine(message);
+            Console.Write(">");
+        }
+
         static void service_ErrorEvent(object sender, BusinessLogic.ErrorEventArgs e)
         {
-            Console.WriteLine(e.Exception.Message + "\n" + e.Exception.StackTrace);
+            Console.WriteLine(e.Exception.ToString());
         }
     }
 }
