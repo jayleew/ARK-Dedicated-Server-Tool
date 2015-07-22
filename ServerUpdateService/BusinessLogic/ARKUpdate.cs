@@ -66,6 +66,7 @@ namespace ServerUpdateService.BusinessLogic
         string apiARKBARURL = "";
         string serverIP = "";
         ushort RCONPort = 0;
+        bool takeNextVersion = false;
 
         int countDown = 0;
 
@@ -94,43 +95,76 @@ namespace ServerUpdateService.BusinessLogic
             timer.Start();
             //use api.ark.bar to get the current version and the server version            
         }
+        
+        public void forceUpdate()
+        {
+            Event(this, "Forcing update...");
+            //update the server
+            countDown = 10;
+            countDownTimer.Start();
+            try
+            {
+                SendRCONCommand("saveworld");
+            }
+            catch (Exception ex)
+            {
+
+            }
+            finally
+            {
+                timer.Stop();
+            }   
+        }
+
+        public void SetTakeNextUpdate()
+        {
+            takeNextVersion = true;
+        }
+
+        void updateServer()
+        {
+            countDownTimer.Stop();
+
+            Event(this, "Stopping server...");
+            SendRCONCommand("doexit");
+
+            Event(this, "Waiting for close..");
+            System.Threading.Thread.Sleep(60000); //1 minutes
+
+            //+login anonymous +force_install_dir "{0}"  "+app_update 376030 {1}" +quit
+            //TODO: dont need bat files....although the process is configurable this way
+            Event(this, "Updating ARK...");
+            var process = new System.Diagnostics.Process
+            {
+                StartInfo = new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = @"c:\ark\updateark.bat",
+
+                }
+            };
+            process.Start();
+            process.WaitForExit();
+
+            Event(this, "Starting ARK...");
+            process = new System.Diagnostics.Process
+            {
+                StartInfo = new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = @"c:\ark\startark.bat"
+                }
+            };
+            process.Start();
+
+            timer.Start();
+        }
 
         void countDown_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {            
-            //SendRCONCommand("broadcast A new major version was released and will be installed in " + countDown + " minutes.");
+            SendRCONCommand("broadcast A new major version was released and will be installed in " + countDown + " minutes.");
             countDown -= 1;           
             if (countDown == -1)
             {
-                countDownTimer.Stop();
-                Event(this, "Stopping server...");
-                //SendRCONCommand("quit");
-
-                Event(this, "Waiting for close..");
-                //System.Threading.Thread.Sleep(120000); //2 minutes
-
-                //+login anonymous +force_install_dir "{0}"  "+app_update 376030 {1}" +quit
-
-                Event(this, "Updating ARK...");
-                var process = new System.Diagnostics.Process
-                {
-                    StartInfo = new System.Diagnostics.ProcessStartInfo
-                    {
-                        FileName = @"c:\ark\updateark.bat"
-                    }
-                };
-                //process.Start();
-                //process.WaitForExit();
-
-                Event(this, "Starting ARK...");
-                process = new System.Diagnostics.Process
-                {
-                    StartInfo = new System.Diagnostics.ProcessStartInfo
-                    {
-                        FileName = @"c:\ark\startark.bat"
-                    }
-                };
-                //process.Start();
-                timer.Start();
+                updateServer();
             }
         }
 
@@ -143,14 +177,29 @@ namespace ServerUpdateService.BusinessLogic
                 var gameinfo = manager.GetServerInfo<GameVersionInfo>(string.Format("{0}/version",apiARKBARURL));
                 var serverinfo = manager.GetServerInfo<ServerInfoRoot>(string.Format("{0}/server/{1}/{2}", apiARKBARURL, serverIP, 27015));
 
-                if (Math.Truncate(gameinfo.Version) > Math.Truncate(serverinfo.ServerInfo.Version))
+
+                if (serverinfo.ServerInfo != null && 
+                        (Math.Truncate(gameinfo.Version) > Math.Truncate(serverinfo.ServerInfo.Version)
+                            || (takeNextVersion && gameinfo.Version > serverinfo.ServerInfo.Version))
+                    ) //then either there is a major version or a new version and an update was scheduled
                 {
+                    takeNextVersion = false; //dont take the following version after this scheduled one
                     Event(this, "New version found preparing to update...");
                     //update the server
                     countDown = 10;
                     countDownTimer.Start();
-                    //SendRCONCommand("saveworld");
-                    timer.Stop();
+                    try
+                    {
+                        SendRCONCommand("saveworld");
+                    }
+                    catch (Exception ex)
+                    {
+                        //TODO:investigate the received data when this command is given (it's an exception)
+                    }
+                    finally
+                    {
+                        timer.Stop();
+                    }                    
                 }
                 timerMutex.ReleaseMutex();
             }

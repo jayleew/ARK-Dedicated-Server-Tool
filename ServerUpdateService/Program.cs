@@ -38,8 +38,10 @@ namespace ServerUpdateService
                 {
                     if (command.StartsWith("/".ToLower()))
                     {
-                        command.TrimStart("/".ToCharArray());
-                        
+                        command = command.TrimStart("/".ToCharArray());
+                        switch (command)
+                        {
+                        }
                     }
                     else
                     {
@@ -51,6 +53,13 @@ namespace ServerUpdateService
                                     var manager = new ServerUpdateService.BusinessLogic.APIARKBARManager();
                                     var serverinfo = manager.GetServerInfo<JSONDataContracts.ServerInfoRoot>("http://api.ark.bar/server/173.26.48.221/27015");
                                     var gameinfo = manager.GetServerInfo<JSONDataContracts.GameVersionInfo>("http://api.ark.bar/version");
+                                    break;
+                                case "forceupdate" :
+                                    service.forceUpdate();
+                                    break;
+                                case "takenextversion" :
+                                    service.SetTakeNextUpdate();
+                                    Console.WriteLine("The next version will be installed.");
                                     break;
                                 default:
                                     Console.WriteLine(service.SendRCONCommand(command));

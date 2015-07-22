@@ -69,9 +69,13 @@
     <None Include="app.config">
       <SubType>Designer</SubType>
     </None>
-    <None Include="Install.ps1" />
+    <None Include="Install.ps1">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="packages.config" />
-    <None Include="Uninstall.ps1" />
+    <None Include="Uninstall.ps1">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\QueryMaster\QueryMaster.csproj">
